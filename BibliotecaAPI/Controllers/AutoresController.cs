@@ -26,6 +26,7 @@ public class AutoresController : ControllerBase
         };
     }*/
     
+    [HttpGet("/listado-de-autores")] //Ignoro ruta del controlador
     [HttpGet]
     public async Task<IEnumerable<Autor>> Get()
     {
@@ -35,7 +36,9 @@ public class AutoresController : ControllerBase
     [HttpGet("{id:int}")] //api/autores/2
     public async Task<ActionResult<Autor>> Get(int id)
     {
-        var autor = await _context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+        var autor = await _context.Autores
+            .Include(x => x.Libros)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (autor is null)
         {
@@ -43,6 +46,19 @@ public class AutoresController : ControllerBase
         }
         
         return autor;
+    }
+
+    [HttpGet("primero")] //api/autores/primero
+    public async Task<Autor> GetPrimerAutor()
+    {
+        return await _context.Autores.FirstAsync();
+    }
+
+    [HttpGet("{parametro1}/{parametros2?}")] // /api/David/Logacho
+    //public ActionResult Get(string parametro1, string? parametros2)
+    public ActionResult Get(string parametro1, string parametros2 = "Valor por defecto")
+    {
+        return Ok(new {parametro1, parametros2});
     }
 
     [HttpPost]
