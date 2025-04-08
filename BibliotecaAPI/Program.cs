@@ -21,26 +21,30 @@ builder.Services.AddSingleton<ServicioSingleton>();
 //Area de middlewares
 var app = builder.Build();
 
-app.Use(async (contexto, next) =>
-{
-    var logger = contexto.RequestServices.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("$Peticion {contenxto.Request.Method} {contenxto.Request.Path}");
-    await next.Invoke();
-    logger.LogInformation("$Resouesta {contenxto.Response.StatusCode}");
-});
+// app.Use(async (contexto, next) =>
+// {
+//     var logger = contexto.RequestServices.GetRequiredService<ILogger<Program>>();
+//     logger.LogInformation("$Peticion {contenxto.Request.Method} {contenxto.Request.Path}");
+//     await next.Invoke();
+//     logger.LogInformation("$Resouesta {contenxto.Response.StatusCode}");
+// });
 
-app.Use(async (contexto, next) =>
-{
-    if (contexto.Request.Path == "/bloquado")
-    {
-        contexto.Response.StatusCode = 403;
-        await contexto.Response.WriteAsync("Acceso Denegado");
-    }
-    else
-    {
-        await next.Invoke();
-    } 
-});
+app.UseLogueaPeticionMiddleware();
+
+// app.Use(async (contexto, next) =>
+// {
+//     if (contexto.Request.Path == "/bloquado")
+//     {
+//         contexto.Response.StatusCode = 403;
+//         await contexto.Response.WriteAsync("Acceso Denegado");
+//     }
+//     else
+//     {
+//         await next.Invoke();
+//     } 
+// });
+
+app.UseBloquePeticionMiddleware();
 
 app.MapControllers();
 
