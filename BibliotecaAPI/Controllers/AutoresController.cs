@@ -10,10 +10,12 @@ namespace BibliotecaAPI.Controllers;
 public class AutoresController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<AutoresController> _logger;
 
-    public AutoresController(ApplicationDbContext context) //Inyección de dependecias
+    public AutoresController(ApplicationDbContext context, ILogger<AutoresController> logger) //Inyección de dependecias
     {
         _context = context;
+        _logger = logger;
     }
     
     /*[HttpGet]
@@ -30,11 +32,28 @@ public class AutoresController : ControllerBase
     [HttpGet]
     public async Task<IEnumerable<Autor>> Get()
     {
+        _logger.LogTrace("Listado de autores");
+        _logger.LogInformation("Listado de autores");
         return await _context.Autores.ToListAsync();
     }
 
-    [HttpGet("{id:int}")] //api/autores/2
-    public async Task<ActionResult<Autor>> Get(int id)
+    // [HttpGet("{id:int}")] //api/autores/2
+    // public async Task<ActionResult<Autor>> Get(int id)
+    // {
+    //     var autor = await _context.Autores
+    //         .Include(x => x.Libros)
+    //         .FirstOrDefaultAsync(x => x.Id == id);
+    //
+    //     if (autor is null)
+    //     {
+    //         return NotFound();
+    //     }
+    //     
+    //     return autor;
+    // }
+    
+    [HttpGet("{id:int}")] //api/autores/2?incluirLibreos=false
+    public async Task<ActionResult<Autor>> Get([FromRoute] int id, [FromQuery] bool incluirLibros) //Model Bindig
     {
         var autor = await _context.Autores
             .Include(x => x.Libros)
@@ -54,15 +73,21 @@ public class AutoresController : ControllerBase
         return await _context.Autores.FirstAsync();
     }
 
+    [HttpGet("{nombre:alpha}")] //Restricción de variable de ruta
+    public async Task<IEnumerable<Autor>> Get(string nombre)
+    {
+        return await _context.Autores.Where(x => x.Nombre.Contains(nombre)).ToListAsync();
+    } 
+
     [HttpGet("{parametro1}/{parametros2?}")] // /api/David/Logacho
     //public ActionResult Get(string parametro1, string? parametros2)
-    public ActionResult Get(string parametro1, string parametros2 = "Valor por defecto")
+    public IActionResult Get(string parametro1, string parametros2 = "Valor por defecto")
     {
         return Ok(new {parametro1, parametros2});
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post(Autor autor)
+    public async Task<ActionResult> Post([FromBody] Autor autor)
     {
         _context.Add(autor);
         await _context.SaveChangesAsync(); //No me quedo frezze hago otras cosas hasta 
